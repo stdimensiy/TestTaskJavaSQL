@@ -9,9 +9,12 @@ import java.sql.*;
 public class TestTaskJavaSQL {
     private static Connection connection;
     private static Statement statement;
+    private static ResultSet resultSet;
 
     public static void main(String[] args) {
         connectionInit();
+        getReportOnTotalSalaryBySubconto("DEPARTMENT");
+        printResult();
         connectionClose();
     }
 
@@ -28,11 +31,35 @@ public class TestTaskJavaSQL {
         }
     }
 
+    public static void getReportOnTotalSalaryBySubconto(String subconto) {
+        // строка запроса к БД с возможностью получать сумму поля SALARY относительно группировки значений любого столбца
+        String queryString = "SELECT " + subconto + ", SUM(SALARY) FROM EMPLOYEES GROUP BY " + subconto;
+        try {
+            resultSet = statement.executeQuery(queryString);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            resultSet = null;
+        }
+    }
+
+    private static void printResult() {
+        if (resultSet != null) {
+            try {
+                while (resultSet.next()) {
+                    System.out.println(resultSet.getString(1) + " : " + resultSet.getString(2));
+                }
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+        }
+    }
+
     public static void connectionClose() {
         if (connection == null) return;
         try {
             connection.close();
             statement.close();
+            resultSet.close();
         } catch (SQLException e) {
             System.out.println("ОШИБКА! соединения не могут быть закрыты.");
         }
